@@ -429,7 +429,7 @@
 
         // --- AI Translation Logic ---
         async function translateText(text) {
-            const systemPrompt = `Anda adalah ahli bahasa dan penerjemah sastra profesional. Terjemahkan teks Arab ini ke dalam Bahasa Indonesia dengan gaya bahasa yang puitis, elegan, dan mendalam (sastra).`;
+            const systemPrompt = `Terjemahkan kedalam bahasa indonesia secara lengkap tidak ada kata yang tidak diterjemahkan`;
 
             if (currentProvider === 'gemini') {
                 if (!geminiKey) throw new Error("API Key Gemini belum diisi.");
