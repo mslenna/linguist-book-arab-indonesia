@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#059669">
+    <title>LinguistBook Pro - Arabic Translator AI</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --paper-bg: #fffef0;
+            --paper-text: #1e293b;
+            --page-transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .serif-font {
+            font-family: 'Crimson Pro', serif;
+        }
+
+        /* Efek Buku 3D */
+        .book-container {
+            perspective: 2500px;
+        }
+
+        .paper {
+            background: var(--paper-bg);
+            color: var(--paper-text);
+            background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 97%, rgba(0, 0, 0, 0.03) 100%);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            transition: var(--page-transition);
+            min-height: 500px;
+        }
+
+        .paper-sepia {
+            --paper-bg: #f4ecd8;
+            --paper-text: #433422;
+        }
+
+        .paper-white {
+            --paper-bg: #ffffff;
+            --paper-text: #1e293b;
+        }
+
+        .paper-dark {
+            --paper-bg: #1e293b;
+            --paper-text: #f1f5f9;
+        }
+
+        .spine {
+            width: 20px;
+            background: linear-gradient(90deg, #94a3b8, #cbd5e1, #94a3b8);
+            z-index: 10;
+        }
+
+        @keyframes pageTurn {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            50% {
+                transform: rotateY(-10deg) scale(1.02);
+                filter: brightness(1.1);
+            }
+
+            100% {
+                transform: rotateY(0deg);
+            }
+        }
+
+        .page-active {
+            animation: pageTurn 0.8s ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .loading-shimmer {
+            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .paper {
+                min-height: 300px;
+            }
+
+            .spine {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="p-3 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <div class="text-center md:text-left">
+                <h1
+                    class="text-3xl font-extrabold text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                    <span class="bg-emerald-600 text-white px-3 py-1 rounded-xl">L</span>
+                    <span>Linguist<span class="text-emerald-600">Book</span> <span
+                            class="text-slate-400 font-light text-xl italic">Pro</span></span>
+                </h1>
+                <p class="text-slate-500 text-sm mt-1">Sastra Arab-Indonesia • Gemini AI</p>
+            </div>
+
+            <!-- Font & Theme Controls -->
+            <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex gap-1 border-r pr-3 border-slate-100">
+                    <button onclick="changeFontSize(-2)"
+                        class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 rounded-lg text-slate-600">A-</button>
+                    <button onclick="changeFontSize(2)"
+                        class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 rounded-lg text-slate-600 font-bold">A+</button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="setTheme('white')"
+                        class="w-6 h-6 rounded-full bg-white border border-slate-200 shadow-sm"></button>
+                    <button onclick="setTheme('sepia')"
+                        class="w-6 h-6 rounded-full bg-[#f4ecd8] border border-orange-100 shadow-sm"></button>
+                    <button onclick="setTheme('dark')"
+                        class="w-6 h-6 rounded-full bg-[#1e293b] border border-slate-800 shadow-sm"></button>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar / History -->
+            <aside class="lg:col-span-1">
+                <div
+                    class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 h-full lg:h-[700px] flex flex-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-slate-700 flex items-center gap-2 text-sm">
+                            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Riwayat Sastra
+                        </h3>
+                        <button onclick="clearHistory()"
+                            class="text-[10px] text-red-400 font-bold uppercase tracking-wider">Hapus</button>
+                    </div>
+                    <div id="historyList" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-1">
+                        <!-- History injected here -->
+                    </div>
+
+                    <!-- Mobile Install Hint -->
+                    <div id="pwaBanner"
+                        class="mt-4 p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-[11px] text-emerald-700 flex items-start gap-2">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        <span>Klik <b class="font-bold">"Tambah ke Layar Utama"</b> di browser Anda untuk
+                            menginstal.</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Translation Main Area -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- Input Box -->
+                <div class="bg-white p-3 rounded-3xl shadow-sm border border-slate-200">
+                    <textarea id="sourceInput" dir="rtl"
+                        class="w-full p-3 h-28 rounded-2xl border-none focus:ring-0 outline-none text-2xl serif-font resize-none custom-scrollbar bg-slate-50/50"
+                        placeholder="أدخل النص العربي... (Masukkan teks Arab)"></textarea>
+
+                    <div class="flex items-center justify-between mt-3 px-2">
+                        <div class="text-[10px] text-slate-400 font-medium uppercase tracking-widest">
+                            <span id="charCount">0</span> Karakter
+                        </div>
+                        <button id="translateBtn"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-2xl font-bold shadow-lg shadow-emerald-200 transition-all flex items-center gap-2 active:scale-95 text-sm">
+                            <span>Terjemahkan</span>
+                            <div id="loaderIcon"
+                                class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full">
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Book View -->
+                <div class="book-container flex flex-col md:flex-row items-stretch">
+                    <!-- Left Page (Arabic) -->
+                    <div id="leftPage" class="paper paper-sepia w-full md:w-1/2 p-6 md:p-10 flex flex-col relative">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10">
+                            <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Original
+                                (Arabic)</span>
+                            <span class="text-[9px] opacity-40">Halaman Kiri</span>
+                        </div>
+                        <div id="arabicContent"
+                            class="serif-font text-2xl leading-relaxed text-right whitespace-pre-wrap flex-1 opacity-60 italic">
+                            Ketuk di atas untuk mulai menulis teks sastra Arab...
+                        </div>
+                    </div>
+
+                    <div class="spine"></div>
+
+                    <!-- Right Page (Indonesian) -->
+                    <div id="rightPage"
+                        class="paper paper-sepia w-full md:w-1/2 p-6 md:p-10 flex flex-col relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10">
+                            <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Terjemahan
+                                (Indonesia)</span>
+                            <span class="text-[9px] opacity-40">Halaman Kanan</span>
+                        </div>
+
+                        <!-- Floating Controls -->
+                        <div class="absolute right-4 top-16 flex flex-col gap-2 z-20">
+                            <button id="playPauseBtn" onclick="toggleAudio()"
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-emerald-50 text-emerald-600 transition-all border border-slate-200"
+                                title="Putar/Jeda">
+                                <svg id="playIcon" class="w-5 h-5" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                </svg>
+                                <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                                </svg>
+                            </button>
+                            <button id="stopBtn" onclick="stopAudio()"
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-red-50 text-red-500 transition-all border border-slate-200 hidden"
+                                title="Hentikan">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M6 6h12v12H6z" />
+                                </svg>
+                            </button>
+                            <!-- Audio Settings Toggle -->
+                            <button onclick="document.getElementById('audioSettings').classList.toggle('hidden')"
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-blue-50 text-blue-600 transition-all border border-slate-200"
+                                title="Pengaturan Suara">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                            <button onclick="copyToClipboard()"
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-slate-50 text-slate-600 transition-all border border-slate-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Audio Control Panel -->
+                        <div id="audioSettings"
+                            class="hidden absolute right-20 top-16 w-48 bg-white/95 backdrop-blur-md p-4 rounded-3xl shadow-xl border border-slate-200 z-30 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <div
+                                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
+                                        <span>Pitch (Nada)</span>
+                                        <span id="pitchVal">0.4</span>
+                                    </div>
+                                    <input type="range" id="pitchInp" min="0.1" max="2" step="0.1" value="0.4"
+                                        class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                        oninput="updateAudioLabels()">
+                                </div>
+                                <div>
+                                    <div
+                                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
+                                        <span>Rate (Tempo)</span>
+                                        <span id="rateVal">0.9</span>
+                                    </div>
+                                    <input type="range" id="rateInp" min="0.1" max="2" step="0.1" value="0.9"
+                                        class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                        oninput="updateAudioLabels()">
+                                </div>
+                                <div>
+                                    <div
+                                        class="flex justify-between text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">
+                                        <span>Volume</span>
+                                        <span id="volVal">1.0</span>
+                                    </div>
+                                    <input type="range" id="volInp" min="0" max="1" step="0.1" value="1"
+                                        class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                        oninput="updateAudioLabels()">
+                                </div>
+                                <button onclick="resetAudioSettings()"
+                                    class="text-[9px] text-center text-slate-400 font-bold uppercase hover:text-emerald-600">Atur
+                                    Ulang</button>
+                            </div>
+                        </div>
+
+                        <div id="indoContent"
+                            class="serif-font text-xl leading-relaxed whitespace-pre-wrap flex-1 custom-scrollbar overflow-y-auto pt-4">
+                            Hasil terjemahan puitis akan muncul di lembaran ini.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur text-white px-5 py-2.5 rounded-2xl shadow-2xl opacity-0 transition-all pointer-events-none z-50 text-xs font-medium">
+        Pesan
+    </div>
+
+    <script>
+        const API_KEY = ""; // Masukkan API Key Anda di sini
+        const MODEL_NAME = "gemini-3-flash-preview";
+
+        let currentFontSize = 18;
+        let translationHistory = JSON.parse(localStorage.getItem('linguistHistory') || '[]');
+
+        let synth = window.speechSynthesis;
+        let currentUtterance = null;
+        let isSpeaking = false;
+
+        // --- TTS Logic (Pria) dengan Pause/Play ---
+        function updateAudioLabels() {
+            document.getElementById('pitchVal').textContent = document.getElementById('pitchInp').value;
+            document.getElementById('rateVal').textContent = document.getElementById('rateInp').value;
+            document.getElementById('volVal').textContent = document.getElementById('volInp').value;
+        }
+
+        function resetAudioSettings() {
+            document.getElementById('pitchInp').value = 0.4;
+            document.getElementById('rateInp').value = 0.9;
+            document.getElementById('volInp').value = 1.0;
+            updateAudioLabels();
+            showToast("Pengaturan suara direset.");
+        }
+
+        function toggleAudio() {
+            const text = indoContent.textContent;
+            if (!text || text.includes("muncul di sini") || text.includes("Hasil terjemahan")) {
+                showToast("Belum ada teks untuk dibaca.");
+                return;
+            }
+
+            if (synth.speaking && !synth.paused) {
+                // Sedang bicara -> Pause
+                synth.pause();
+                updateUI('paused');
+                showToast("Suara dijeda.");
+            } else if (synth.paused) {
+                // Sedang dijeda -> Resume
+                synth.resume();
+                updateUI('playing');
+                showToast("Melanjutkan...");
+            } else {
+                // Belum mulai -> Start
+                startSpeaking(text);
+            }
+        }
+
+        function startSpeaking(text) {
+            synth.cancel();
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'id-ID';
+
+            const voices = synth.getVoices();
+            const maleVoice = voices.find(v =>
+                (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('pria')) &&
+                v.lang.includes('id')
+            ) || voices.find(v => v.lang.includes('id'));
+
+            if (maleVoice) currentUtterance.voice = maleVoice;
+
+            currentUtterance.pitch = parseFloat(document.getElementById('pitchInp').value);
+            currentUtterance.rate = parseFloat(document.getElementById('rateInp').value);
+            currentUtterance.volume = parseFloat(document.getElementById('volInp').value);
+
+            currentUtterance.onstart = () => updateUI('playing');
+            currentUtterance.onend = () => updateUI('stopped');
+            currentUtterance.onerror = () => updateUI('stopped');
+
+            synth.speak(currentUtterance);
+            showToast("Mulai membaca...");
+        }
+
+        function stopAudio() {
+            synth.cancel();
+            updateUI('stopped');
+            showToast("Pembacaan dihentikan.");
+        }
+
+        function updateUI(state) {
+            const playIcon = document.getElementById('playIcon');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const stopBtn = document.getElementById('stopBtn');
+
+            if (state === 'playing') {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                stopBtn.classList.remove('hidden');
+            } else if (state === 'paused') {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                stopBtn.classList.add('hidden');
+            }
+        }
+
+        // --- API & Core Translation ---
+        async function translateText(text) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=AIzaSyCMe2gs6b78s4U9F2Ur2TijQ-ac8ZLn3BI`;
+
+            const systemPrompt = `Anda adalah ahli sastra dan penerjemah senior Arab ke Indonesia.
+            Karakteristik output:
+            1. Puitis, elegan, dan menggunakan diksi sastra Indonesia yang kaya.
+            2. Tetap mempertahankan makna teologis atau filosofis jika teks tersebut berasal dari kitab klasik.
+            3. HANYA berikan teks hasil terjemahan saja tanpa catatan kaki.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: `Terjemahkan secara sastrawi teks ini: ${text}` }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error("Gagal memproses.");
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "Gagal menerjemahkan.";
+        }
+
+        async function handleTranslation() {
+            const input = sourceInput.value.trim();
+            if (!input) {
+                showToast("Tuliskan teks Arab dulu, Ya Sayyidi.");
+                return;
+            }
+
+            translateBtn.disabled = true;
+            loaderIcon.classList.remove('hidden');
+            rightPage.classList.add('page-active');
+            arabicContent.textContent = input;
+            arabicContent.classList.remove('opacity-60', 'italic');
+
+            indoContent.innerHTML = `
+                <div class="space-y-3">
+                    <div class="loading-shimmer h-4 w-full rounded"></div>
+                    <div class="loading-shimmer h-4 w-11/12 rounded"></div>
+                    <div class="loading-shimmer h-4 w-4/5 rounded"></div>
+                </div>`;
+
+            try {
+                const result = await translateText(input);
+                setTimeout(() => {
+                    indoContent.textContent = result;
+                    addToHistory(input, result);
+                    rightPage.classList.remove('page-active');
+                }, 600);
+            } catch (error) {
+                showToast("Gangguan koneksi/API Key.");
+                indoContent.textContent = "Error: Pastikan API Key sudah terpasang.";
+            } finally {
+                setTimeout(() => {
+                    translateBtn.disabled = false;
+                    loaderIcon.classList.add('hidden');
+                }, 800);
+            }
+        }
+
+        // --- History & Persistence ---
+        function addToHistory(arab, indo) {
+            const item = {
+                id: Date.now(),
+                arab: arab.length > 40 ? arab.substring(0, 40) + '...' : arab,
+                fullArab: arab,
+                indo: indo
+            };
+            translationHistory.unshift(item);
+            if (translationHistory.length > 20) translationHistory.pop();
+            localStorage.setItem('linguistHistory', JSON.stringify(translationHistory));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = translationHistory.map(item => `
+                <div onclick="loadFromHistory(${item.id})" class="p-3 rounded-2xl bg-slate-50 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 cursor-pointer transition-all">
+                    <div class="text-right serif-font text-sm text-emerald-800 truncate mb-1" dir="rtl">${item.arab}</div>
+                    <div class="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Buka Terjemahan</div>
+                </div>
+            `).join('');
+            if (translationHistory.length === 0) {
+                historyList.innerHTML = `<div class="text-[11px] text-slate-400 italic text-center py-10">Belum ada catatan...</div>`;
+            }
+        }
+
+        function loadFromHistory(id) {
+            const item = translationHistory.find(i => i.id === id);
+            if (item) {
+                sourceInput.value = item.fullArab;
+                arabicContent.textContent = item.fullArab;
+                indoContent.textContent = item.indo;
+                arabicContent.classList.remove('opacity-60', 'italic');
+                showToast("Memori dibuka.");
+            }
+        }
+
+        function clearHistory() {
+            translationHistory = [];
+            localStorage.removeItem('linguistHistory');
+            renderHistory();
+            showToast("Riwayat dihapus.");
+        }
+
+        // --- Utilities ---
+        function changeFontSize(delta) {
+            currentFontSize = Math.min(Math.max(currentFontSize + delta, 14), 32);
+            indoContent.style.fontSize = `${currentFontSize}px`;
+            arabicContent.style.fontSize = `${currentFontSize + 4}px`;
+        }
+
+        function setTheme(theme) {
+            const pages = [leftPage, rightPage];
+            pages.forEach(p => {
+                p.classList.remove('paper-sepia', 'paper-white', 'paper-dark');
+                p.classList.add(`paper-${theme}`);
+            });
+            showToast(`Tema ${theme} aktif.`);
+        }
+
+        function copyToClipboard() {
+            const text = indoContent.textContent;
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Salin sukses!");
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            toast.style.bottom = '40px';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.bottom = '24px';
+            }, 2500);
+        }
+
+        // Event Listeners
+        translateBtn.addEventListener('click', handleTranslation);
+        sourceInput.addEventListener('input', () => {
+            charCount.textContent = sourceInput.value.length;
+        });
+
+        // Initialize voices for TTS
+        window.speechSynthesis.onvoiceschanged = () => {
+            console.log("Voices loaded.");
+        };
+
+        window.onload = renderHistory;
+    </script>
+</body>
+
+</html>
