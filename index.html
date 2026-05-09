@@ -477,7 +477,15 @@
         }
 
         async function translateText(text) {
-            const sys = `Terjemahkan kedalam bahasa indonesia secara lengkap, secara menyeluruh`;
+            const sys = `Terjemahkan teks berikut ke Bahasa Indonesia secara lengkap, secara menyeluruh.
+
+            Aturan output:
+            - Hanya gunakan huruf dan spasi
+            - Hindari semua simbol dan tanda baca kecuali titik
+            - Jangan gunakan markdown atau formatting apapun
+            - Jangan tambahkan penjelasan apapun
+
+            Output hanya teks final.`;
 
             if (currentProvider === 'gemini') {
                 if (!geminiKey) throw new Error("API Key Gemini belum diisi.");
