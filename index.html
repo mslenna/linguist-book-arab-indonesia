@@ -21,11 +21,48 @@
             --page-transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f1f5f9;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
+        body.dark-mode {
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .text-slate-800 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .text-slate-700 {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .text-slate-500 {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .bg-slate-50 {
+            background-color: #0f172a;
+        }
+
+        body.dark-mode .border-slate-200 {
+            border-color: #334155;
+        }
+
+        #readingOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: var(--paper-bg);
+            color: var(--paper-text);
+            overflow-y: auto;
+        }
+
+        .reading-active #readingOverlay {
+            display: block;
         }
 
         .serif-font {
@@ -144,13 +181,22 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button id="installBtn"
-                    class="hidden bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-100">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="toggleGlobalDarkMode()"
+                    class="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50"
+                    title="Gelap/Terang">
+                    <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
-                    Instal
+                </button>
+
+                <button onclick="toggleReadingMode()"
+                    class="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    title="Mode Membaca">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
                 </button>
 
                 <div class="flex items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
@@ -188,13 +234,11 @@
                         AI</label>
                     <div class="flex gap-2">
                         <button onclick="switchProvider('gemini')" id="btnGemini"
-                            class="flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                            Google Gemini
-                        </button>
+                            class="flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 transition-all">Google
+                            Gemini</button>
                         <button onclick="switchProvider('openai')" id="btnOpenAI"
-                            class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2 transition-all">
-                            ChatGPT (OpenAI)
-                        </button>
+                            class="flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2 transition-all">ChatGPT
+                            (OpenAI)</button>
                     </div>
                 </div>
                 <div>
@@ -208,8 +252,6 @@
                     </div>
                 </div>
             </div>
-            <p class="mt-4 text-[10px] text-slate-400 italic">Kunci Anda disimpan secara lokal di browser dan tidak
-                pernah dikirim ke server kami.</p>
         </div>
 
         <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -235,8 +277,7 @@
                 <div class="bg-white p-3 rounded-3xl shadow-sm border border-slate-200">
                     <textarea id="sourceInput" dir="rtl"
                         class="w-full p-4 h-32 rounded-2xl border-none focus:ring-0 outline-none text-2xl serif-font resize-none custom-scrollbar bg-slate-50/50"
-                        placeholder="أدخل النص العربي (Contoh: قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ)"></textarea>
-
+                        placeholder="أدخل النص العربي..."></textarea>
                     <div class="flex items-center justify-between mt-3 px-2">
                         <div
                             class="flex items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest">
@@ -254,34 +295,23 @@
                 </div>
 
                 <div class="book-container flex flex-col md:flex-row items-stretch">
-                    <!-- Left Page (Arabic) -->
                     <div id="leftPage" class="paper paper-sepia w-full md:w-1/2 p-6 md:p-10 flex flex-col relative">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10">
-                            <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Original
-                                (Arabic)</span>
-                        </div>
+                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10"><span
+                                class="text-[9px] uppercase tracking-widest font-bold opacity-40">Original
+                                (Arabic)</span></div>
                         <div id="arabicContent"
                             class="serif-font text-2xl leading-relaxed text-right whitespace-pre-wrap flex-1 opacity-60 italic"
-                            dir="rtl">
-                            Tulis teks Arab di atas...
-                        </div>
+                            dir="rtl">Tulis teks Arab di atas...</div>
                     </div>
-
                     <div class="spine"></div>
-
-                    <!-- Right Page (Indonesian) -->
                     <div id="rightPage"
                         class="paper paper-sepia w-full md:w-1/2 p-6 md:p-10 flex flex-col relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10">
-                            <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Terjemahan
-                                (Indonesia)</span>
-                        </div>
-
-                        <!-- Floating Controls -->
+                        <div class="flex justify-between items-center mb-4 border-b pb-2 border-slate-400/10"><span
+                                class="text-[9px] uppercase tracking-widest font-bold opacity-40">Terjemahan
+                                (Indonesia)</span></div>
                         <div class="absolute right-4 top-16 flex flex-col gap-2 z-20">
-                            <button id="playPauseBtn" onclick="toggleAudio()"
-                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-emerald-50 text-emerald-600 transition-all border border-slate-200"
-                                title="Putar/Jeda">
+                            <button onclick="toggleAudio()"
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-emerald-50 text-emerald-600 transition-all border border-slate-200 relative">
                                 <svg id="playIcon" class="w-5 h-5" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -290,27 +320,28 @@
                                 <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                                 </svg>
+                                <div id="ttsLoader"
+                                    class="hidden absolute inset-0 flex items-center justify-center bg-white/90 rounded-2xl">
+                                    <div
+                                        class="w-4 h-4 border-2 border-emerald-600 border-t-transparent animate-spin rounded-full">
+                                    </div>
+                                </div>
                             </button>
                             <button id="stopBtn" onclick="stopAudio()"
-                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-red-50 text-red-500 transition-all border border-slate-200 hidden"
-                                title="Hentikan">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-red-50 text-red-500 transition-all border border-slate-200 hidden"><svg
+                                    class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M6 6h12v12H6z" />
-                                </svg>
-                            </button>
+                                </svg></button>
                             <button onclick="document.getElementById('audioSettings').classList.toggle('hidden')"
-                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-blue-50 text-blue-600 transition-all border border-slate-200"
-                                title="Pengaturan Suara">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="p-3 bg-white/80 backdrop-blur rounded-2xl shadow-sm hover:bg-blue-50 text-blue-600 transition-all border border-slate-200"><svg
+                                    class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </button>
+                                </svg></button>
                         </div>
 
-                        <!-- Audio Customization Panel -->
                         <div id="audioSettings"
                             class="hidden absolute right-20 top-16 w-48 bg-white/95 backdrop-blur-md p-4 rounded-3xl shadow-xl border border-slate-200 z-30">
                             <div class="flex flex-col gap-4">
@@ -340,12 +371,26 @@
 
                         <div id="indoContent"
                             class="serif-font text-xl leading-relaxed whitespace-pre-wrap flex-1 custom-scrollbar overflow-y-auto pt-4">
-                            Hasil terjemahan muncul di sini.
-                        </div>
+                            Hasil terjemahan muncul di sini.</div>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <div id="readingOverlay" class="p-8 md:p-20">
+        <button onclick="toggleReadingMode()"
+            class="fixed top-6 right-6 p-3 bg-slate-800 text-white rounded-full shadow-xl hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="max-w-3xl mx-auto space-y-12">
+            <div id="readArabic"
+                class="serif-font text-4xl md:text-6xl text-right leading-loose border-b border-slate-200 pb-12"
+                dir="rtl"></div>
+            <div id="readIndo" class="serif-font text-2xl md:text-3xl leading-relaxed italic opacity-80"></div>
+        </div>
     </div>
 
     <div id="toast"
@@ -361,25 +406,38 @@
         let translationHistory = JSON.parse(localStorage.getItem('linguistHistory') || '[]');
         let synth = window.speechSynthesis;
         let currentUtterance = null;
+        let isDarkMode = localStorage.getItem('linguist_dark_mode') === 'true';
 
-        // --- PWA Installation ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installBtn').classList.remove('hidden');
-        });
+        // UI Functions
+        function toggleGlobalDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            localStorage.setItem('linguist_dark_mode', isDarkMode);
+            updateThemeIcon();
+        }
 
-        document.getElementById('installBtn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('installBtn').classList.add('hidden');
-                deferredPrompt = null;
+        function updateThemeIcon() {
+            const icon = document.getElementById('themeIcon');
+            if (isDarkMode) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
             }
-        });
+        }
 
-        // --- Provider Management ---
+        function toggleReadingMode() {
+            const isReading = document.body.classList.toggle('reading-active');
+            if (isReading) {
+                document.getElementById('readArabic').textContent = document.getElementById('arabicContent').textContent;
+                document.getElementById('readIndo').textContent = document.getElementById('indoContent').textContent;
+            }
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('apiKeyPanel');
+            panel.classList.toggle('hidden');
+        }
+
         function switchProvider(p) {
             currentProvider = p;
             localStorage.setItem('linguist_provider', p);
@@ -388,30 +446,11 @@
 
         function updateProviderUI() {
             const isGemini = currentProvider === 'gemini';
-            const btnG = document.getElementById('btnGemini');
-            const btnO = document.getElementById('btnOpenAI');
-            const inp = document.getElementById('apiKeyInput');
-            const indicator = document.getElementById('activeModelIndicator');
-            const keyLabel = document.getElementById('keyLabel');
-
-            if (isGemini) {
-                btnG.className = "flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm transition-all";
-                btnO.className = "flex-1 py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold text-sm transition-all";
-                inp.value = geminiKey;
-                indicator.textContent = "Gemini";
-                keyLabel.textContent = "Gemini";
-            } else {
-                btnO.className = "flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm transition-all";
-                btnG.className = "flex-1 py-3 px-4 rounded-xl border-2 border-slate-100 text-slate-400 font-bold text-sm transition-all";
-                inp.value = openaiKey;
-                indicator.textContent = "ChatGPT";
-                keyLabel.textContent = "OpenAI";
-            }
-        }
-
-        function toggleSettings() {
-            const panel = document.getElementById('apiKeyPanel');
-            panel.classList.toggle('hidden');
+            document.getElementById('btnGemini').className = isGemini ? 'flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2' : 'flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2';
+            document.getElementById('btnOpenAI').className = !isGemini ? 'flex-1 py-3 px-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2' : 'flex-1 py-3 px-4 rounded-xl border-2 border-slate-200 text-slate-400 font-bold text-sm flex items-center justify-center gap-2';
+            document.getElementById('keyLabel').textContent = isGemini ? 'Gemini' : 'OpenAI';
+            document.getElementById('apiKeyInput').value = isGemini ? geminiKey : openaiKey;
+            document.getElementById('activeModelIndicator').textContent = isGemini ? 'Gemini' : 'ChatGPT';
         }
 
         function saveApiKey() {
@@ -427,9 +466,8 @@
             toggleSettings();
         }
 
-        // --- AI Translation Logic ---
         async function translateText(text) {
-            const systemPrompt = `Terjemahkan kedalam bahasa indonesia secara lengkap tidak ada kata yang tidak diterjemahkan`;
+            const sys = `Anda adalah ahli bahasa dan penerjemah sastra profesional. Terjemahkan teks Arab ini ke dalam Bahasa Indonesia dengan gaya bahasa yang puitis, elegan, dan mendalam (sastra).`;
 
             if (currentProvider === 'gemini') {
                 if (!geminiKey) throw new Error("API Key Gemini belum diisi.");
@@ -437,27 +475,17 @@
                 const resp = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `${systemPrompt}\n\nTeks: ${text}` }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `${sys}\n\nTeks: ${text}` }] }] })
                 });
                 const data = await resp.json();
                 if (data.error) throw new Error(data.error.message);
                 return data.candidates[0].content.parts[0].text;
             } else {
                 if (!openaiKey) throw new Error("API Key OpenAI belum diisi.");
-                const url = `https://api.openai.com/v1/chat/completions`;
-                const resp = await fetch(url, {
+                const resp = await fetch(`https://api.openai.com/v1/chat/completions`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${openaiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-4o-mini",
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: text }
-                        ]
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+                    body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "system", content: sys }, { role: "user", content: text }] })
                 });
                 const data = await resp.json();
                 if (data.error) throw new Error(data.error.message);
@@ -484,17 +512,53 @@
                 document.getElementById('rightPage').classList.add('page-active');
                 setTimeout(() => document.getElementById('rightPage').classList.remove('page-active'), 800);
                 addToHistory(input, result);
-            } catch (e) {
-                showToast("Kesalahan: " + e.message);
-                indoBox.textContent = "Gagal memproses. Periksa API Key di menu pengaturan (ikon kunci).";
-                if (e.message.includes("Key")) toggleSettings();
+            } catch (err) {
+                indoBox.innerHTML = `<div class="p-4 bg-red-50 text-red-600 rounded-xl text-xs border border-red-100">Kesalahan: ${err.message}</div>`;
             } finally {
                 btn.disabled = false;
                 loader.classList.add('hidden');
             }
         };
 
-        // --- Audio Logic ---
+        function toggleAudio() {
+            const text = document.getElementById('indoContent').textContent;
+            if (!text || text.includes("muncul di sini")) return showToast("Belum ada teks.");
+
+            if (synth.speaking && !synth.paused) {
+                synth.pause();
+                updateUI('paused');
+            } else if (synth.paused) {
+                synth.resume();
+                updateUI('playing');
+            } else {
+                const loader = document.getElementById('ttsLoader');
+                loader.classList.remove('hidden');
+                setTimeout(() => startSpeaking(text), 400);
+            }
+        }
+
+        function startSpeaking(text) {
+            synth.cancel();
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'id-ID';
+            const v = synth.getVoices().find(v => v.lang.includes('id') && v.name.toLowerCase().includes('male')) || synth.getVoices().find(v => v.lang.includes('id'));
+            if (v) currentUtterance.voice = v;
+            currentUtterance.pitch = parseFloat(document.getElementById('pitchInp').value);
+            currentUtterance.rate = parseFloat(document.getElementById('rateInp').value);
+            currentUtterance.onstart = () => { document.getElementById('ttsLoader').classList.add('hidden'); updateUI('playing'); };
+            currentUtterance.onend = () => updateUI('stopped');
+            synth.speak(currentUtterance);
+        }
+
+        function stopAudio() { synth.cancel(); updateUI('stopped'); }
+
+        function updateUI(st) {
+            const p = document.getElementById('playIcon'), ps = document.getElementById('pauseIcon'), s = document.getElementById('stopBtn');
+            if (st === 'playing') { p.classList.add('hidden'); ps.classList.remove('hidden'); s.classList.remove('hidden'); }
+            else if (st === 'paused') { p.classList.remove('hidden'); ps.classList.add('hidden'); s.classList.remove('hidden'); }
+            else { p.classList.remove('hidden'); ps.classList.add('hidden'); s.classList.add('hidden'); }
+        }
+
         function updateAudioLabels() {
             document.getElementById('pitchVal').textContent = document.getElementById('pitchInp').value;
             document.getElementById('rateVal').textContent = document.getElementById('rateInp').value;
@@ -506,40 +570,6 @@
             updateAudioLabels();
         }
 
-        function toggleAudio() {
-            const text = document.getElementById('indoContent').textContent;
-            if (!text || text.includes("muncul di sini")) return showToast("Belum ada teks.");
-            if (synth.speaking && !synth.paused) { synth.pause(); updateUI('paused'); }
-            else if (synth.paused) { synth.resume(); updateUI('playing'); }
-            else { startSpeaking(text); }
-        }
-
-        function startSpeaking(text) {
-            synth.cancel();
-            currentUtterance = new SpeechSynthesisUtterance(text);
-            currentUtterance.lang = 'id-ID';
-            const voices = synth.getVoices();
-            const maleVoice = voices.find(v => (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('pria')) && v.lang.includes('id')) || voices.find(v => v.lang.includes('id'));
-            if (maleVoice) currentUtterance.voice = maleVoice;
-            currentUtterance.pitch = parseFloat(document.getElementById('pitchInp').value);
-            currentUtterance.rate = parseFloat(document.getElementById('rateInp').value);
-            currentUtterance.onstart = () => updateUI('playing');
-            currentUtterance.onend = () => updateUI('stopped');
-            synth.speak(currentUtterance);
-        }
-
-        function stopAudio() { synth.cancel(); updateUI('stopped'); }
-
-        function updateUI(state) {
-            const playIcon = document.getElementById('playIcon');
-            const pauseIcon = document.getElementById('pauseIcon');
-            const stopBtn = document.getElementById('stopBtn');
-            if (state === 'playing') { playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden'); stopBtn.classList.remove('hidden'); }
-            else if (state === 'paused') { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); stopBtn.classList.remove('hidden'); }
-            else { playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden'); stopBtn.classList.add('hidden'); }
-        }
-
-        // --- History & Theme ---
         function addToHistory(arab, indo) {
             translationHistory.unshift({ id: Date.now(), arab, indo });
             if (translationHistory.length > 15) translationHistory.pop();
@@ -594,6 +624,8 @@
         }
 
         window.onload = () => {
+            if (isDarkMode) document.body.classList.add('dark-mode');
+            updateThemeIcon();
             updateProviderUI();
             renderHistory();
             document.getElementById('sourceInput').oninput = (e) => document.getElementById('charCount').textContent = e.target.value.length;
